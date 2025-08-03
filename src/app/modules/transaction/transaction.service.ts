@@ -4,17 +4,48 @@ import mongoose from 'mongoose';
 import AppError from '../../middlewares/AppError';
 import { User } from '../user/user.model';
 import httpStatus from 'http-status-codes';
+import bcrypt from 'bcrypt';
+
+
+export const verifyPassword = async (
+  userId: string,
+  password: string
+): Promise<boolean> => {
+  const user = await User.findById(userId);
+
+  if (!user) throw new AppError(404, 'User not found');
+  if (!user.password) throw new AppError(400, 'Password not set for user');
+  if (!password) throw new AppError(400, 'Password must be provided');
+
+  try {
+    console.log('📌 Raw password input:', password);
+    console.log('🔐 Stored hash in DB:', user.password);
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) throw new AppError(401, 'Invalid password');
+
+    return true;
+  } catch (err) {
+    console.error('❌ bcrypt.compare threw an error:', err);
+    throw new AppError(500, 'Something went wrong during password verification');
+  }
+};
+
+
+
+
 
 export const TransactionService = {
-  addMoney: async (userId: string, amount: number) => {
+
+  addMoney: async (userId: string, amount: number, password: string) => {
     console.log("user id in add money service",userId)
     const wallet = await Wallet.findOne({ userId: userId });
-
+    await verifyPassword(userId, password);
     if (!wallet || wallet.isBlocked) throw new Error('Wallet not available');
 
     wallet.balance += amount;
     await wallet.save();
-
+    
     await Transaction.create({
       type: 'add-money',
       amount,
@@ -24,7 +55,8 @@ export const TransactionService = {
     return { balance: wallet.balance };
   },
 
-  withdrawMoney: async (userId: string, amount: number) => {
+  withdrawMoney: async (userId: string, amount: number, password: string) => {
+    await verifyPassword(userId, password);
     const wallet = await Wallet.findOne({ userId: userId });
 
     if (!wallet || wallet.isBlocked) throw new Error('Wallet not available');
@@ -42,7 +74,8 @@ export const TransactionService = {
     return { balance: wallet.balance };
   },
 
-  sendMoney: async (senderId: string, receiverPhone: string, amount: number) => {
+  sendMoney: async (senderId: string, receiverPhone: string, amount: number,password: string) => {
+    await verifyPassword(senderId, password);
     console.log("senderId",senderId);
     console.log("receiverPhone",receiverPhone);
 
@@ -91,12 +124,21 @@ export const TransactionService = {
       $or: [{ sender: userId }, { receiver: userId }],
     }).sort({ createdAt: -1 });
 },
+getUserTransactionHistory: async (userId: string) => {
+  const transactions = await Transaction.find({
+    $or: [{ sender: userId }, { receiver: userId }],
+  }).sort({ createdAt: -1 });
+
+  return transactions;
+},
 
 cashInByAgent: async (
   agentId: string,
   targetPhoneNumber: string,
-  amount: number
+  amount: number,
+  password:string
 ) => {
+  await verifyPassword(agentId, password);
     const targetUser = await User.findOne({ phoneNumber: targetPhoneNumber });
     if (!targetUser) throw new AppError(404, "Target user not found");
   
@@ -135,8 +177,9 @@ cashInByAgent: async (
       throw err;
     }
   },
-  cashOut: async (senderId: string, receiverPhone: string, amount: number) => {
+  cashOut: async (senderId: string, receiverPhone: string, amount: number,password:string) => {
   // Find agent by phone number
+  await verifyPassword(senderId, password);
   const agentUser = await User.findOne({ phoneNumber: receiverPhone });
   if (!agentUser) {
     throw new AppError(httpStatus.NOT_FOUND, 'Agent not found');
@@ -175,6 +218,13 @@ cashInByAgent: async (
     message: 'Cash-out successful',
     remainingBalance: senderWallet.balance,
   };
+},
+getAgentTransactions: async (agentId: string) => {
+  const agentTransactions = await Transaction.find({
+    $or: [{ sender: agentId }, { receiver: agentId }],
+  }).sort({ createdAt: -1 });
+
+  return agentTransactions;
 },
 };
   

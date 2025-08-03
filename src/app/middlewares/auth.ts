@@ -4,7 +4,7 @@ import { User } from '../modules/user/user.model';
 import AppError from './AppError';
 import { envVars } from '../config/env'; // import envVars
 
-export const auth = (role: 'USER' | 'ADMIN' | 'AGENT') => {
+export const auth = ( role: 'USER' | 'ADMIN' | 'AGENT') => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const authHeader = req.headers.authorization;

@@ -14,6 +14,13 @@ export const AdminController = {
     const wallets = await AdminService.getAllWallets();
     res.status(200).json({ success: true, data: wallets });
   },
+  approveOrSuspendAgent: async (req: Request, res: Response) => {
+    const { agentId } = req.params;
+    const { isSuspended } = req.body; // true or false
+    const agent = await AdminService.updateAgentStatus(agentId, isSuspended);
+    if (!agent) return res.status(404).json({ message: 'Agent not found' });
+    res.status(200).json({ message: `Agent ${isSuspended ? 'suspended' : 'approved'} successfully`, data: agent });
+  },
   blockWallet: async (req: Request, res: Response) => {
   const { walletId } = req.params;
   const { isBlocked } = req.body; // true or false

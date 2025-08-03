@@ -12,6 +12,9 @@ export const AdminService = {
   getAllWallets: async () => {
     return Wallet.find().sort({ createdAt: -1 });
   },
+  updateAgentStatus: async (agentId: string, isApproved: boolean) => {
+    return await User.findByIdAndUpdate(agentId, { isApproved }, { new: true });
+  },
   blockWallet: async (walletId: string, isBlocked: boolean) => {
   return await Wallet.findByIdAndUpdate(walletId, { isBlocked }, { new: true });
 },
