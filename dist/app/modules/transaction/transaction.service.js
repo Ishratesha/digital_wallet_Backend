@@ -147,8 +147,6 @@ exports.TransactionService = {
                     to: targetUser._id,
                     initiatedBy: 'agent'
                 }], { session });
-            // Optional: Record commission for agent
-            // await Commission.create({ agent: agentId, amount: commissionAmount });
             yield session.commitTransaction();
             session.endSession();
             return { message: 'Cash-in successful', balance: targetWallet.balance };
