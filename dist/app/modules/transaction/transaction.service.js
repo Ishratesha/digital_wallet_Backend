@@ -12,17 +12,41 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TransactionService = void 0;
+exports.TransactionService = exports.verifyPassword = void 0;
 const transaction_model_1 = require("./transaction.model");
 const wallet_model_1 = require("../wallet/wallet.model");
 const mongoose_1 = __importDefault(require("mongoose"));
 const AppError_1 = __importDefault(require("../../middlewares/AppError"));
 const user_model_1 = require("../user/user.model");
 const http_status_codes_1 = __importDefault(require("http-status-codes"));
+const bcrypt_1 = __importDefault(require("bcrypt"));
+const verifyPassword = (userId, password) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_model_1.User.findById(userId);
+    if (!user)
+        throw new AppError_1.default(404, 'User not found');
+    if (!user.password)
+        throw new AppError_1.default(400, 'Password not set for user');
+    if (!password)
+        throw new AppError_1.default(400, 'Password must be provided');
+    try {
+        console.log('📌 Raw password input:', password);
+        console.log('🔐 Stored hash in DB:', user.password);
+        const isMatch = yield bcrypt_1.default.compare(password, user.password);
+        if (!isMatch)
+            throw new AppError_1.default(401, 'Invalid password');
+        return true;
+    }
+    catch (err) {
+        console.error('❌ bcrypt.compare threw an error:', err);
+        throw new AppError_1.default(500, 'Something went wrong during password verification');
+    }
+});
+exports.verifyPassword = verifyPassword;
 exports.TransactionService = {
-    addMoney: (userId, amount) => __awaiter(void 0, void 0, void 0, function* () {
+    addMoney: (userId, amount, password) => __awaiter(void 0, void 0, void 0, function* () {
         console.log("user id in add money service", userId);
         const wallet = yield wallet_model_1.Wallet.findOne({ userId: userId });
+        yield (0, exports.verifyPassword)(userId, password);
         if (!wallet || wallet.isBlocked)
             throw new Error('Wallet not available');
         wallet.balance += amount;
@@ -34,7 +58,8 @@ exports.TransactionService = {
         });
         return { balance: wallet.balance };
     }),
-    withdrawMoney: (userId, amount) => __awaiter(void 0, void 0, void 0, function* () {
+    withdrawMoney: (userId, amount, password) => __awaiter(void 0, void 0, void 0, function* () {
+        yield (0, exports.verifyPassword)(userId, password);
         const wallet = yield wallet_model_1.Wallet.findOne({ userId: userId });
         if (!wallet || wallet.isBlocked)
             throw new Error('Wallet not available');
@@ -49,7 +74,8 @@ exports.TransactionService = {
         });
         return { balance: wallet.balance };
     }),
-    sendMoney: (senderId, receiverPhone, amount) => __awaiter(void 0, void 0, void 0, function* () {
+    sendMoney: (senderId, receiverPhone, amount, password) => __awaiter(void 0, void 0, void 0, function* () {
+        yield (0, exports.verifyPassword)(senderId, password);
         console.log("senderId", senderId);
         console.log("receiverPhone", receiverPhone);
         const session = yield mongoose_1.default.startSession();
@@ -92,7 +118,14 @@ exports.TransactionService = {
             $or: [{ sender: userId }, { receiver: userId }],
         }).sort({ createdAt: -1 });
     }),
-    cashInByAgent: (agentId, targetPhoneNumber, amount) => __awaiter(void 0, void 0, void 0, function* () {
+    getUserTransactionHistory: (userId) => __awaiter(void 0, void 0, void 0, function* () {
+        const transactions = yield transaction_model_1.Transaction.find({
+            $or: [{ sender: userId }, { receiver: userId }],
+        }).sort({ createdAt: -1 });
+        return transactions;
+    }),
+    cashInByAgent: (agentId, targetPhoneNumber, amount, password) => __awaiter(void 0, void 0, void 0, function* () {
+        yield (0, exports.verifyPassword)(agentId, password);
         const targetUser = yield user_model_1.User.findOne({ phoneNumber: targetPhoneNumber });
         if (!targetUser)
             throw new AppError_1.default(404, "Target user not found");
@@ -126,8 +159,9 @@ exports.TransactionService = {
             throw err;
         }
     }),
-    cashOut: (senderId, receiverPhone, amount) => __awaiter(void 0, void 0, void 0, function* () {
+    cashOut: (senderId, receiverPhone, amount, password) => __awaiter(void 0, void 0, void 0, function* () {
         // Find agent by phone number
+        yield (0, exports.verifyPassword)(senderId, password);
         const agentUser = yield user_model_1.User.findOne({ phoneNumber: receiverPhone });
         if (!agentUser) {
             throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, 'Agent not found');
@@ -161,5 +195,11 @@ exports.TransactionService = {
             message: 'Cash-out successful',
             remainingBalance: senderWallet.balance,
         };
+    }),
+    getAgentTransactions: (agentId) => __awaiter(void 0, void 0, void 0, function* () {
+        const agentTransactions = yield transaction_model_1.Transaction.find({
+            $or: [{ sender: agentId }, { receiver: agentId }],
+        }).sort({ createdAt: -1 });
+        return agentTransactions;
     }),
 };

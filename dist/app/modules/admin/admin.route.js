@@ -11,4 +11,6 @@ router.get('/users', (0, auth_1.auth)('ADMIN'), admin_controller_1.AdminControll
 router.get('/transactions', (0, auth_1.auth)('ADMIN'), admin_controller_1.AdminController.getAllTransactions);
 router.get('/wallets', (0, auth_1.auth)('ADMIN'), admin_controller_1.AdminController.getAllWallets);
 router.patch('/wallets/:walletId/block', (0, auth_1.auth)('ADMIN'), admin_controller_1.AdminController.blockWallet);
+router.patch('/agents/:agentId/approve', (0, auth_1.auth)('ADMIN'), admin_controller_1.AdminController.approveOrSuspendAgent);
+router.patch('/agents/:agentId/suspend', (0, auth_1.auth)('ADMIN'), admin_controller_1.AdminController.approveOrSuspendAgent);
 exports.default = router;

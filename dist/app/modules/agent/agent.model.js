@@ -4,6 +4,7 @@ exports.Agent = void 0;
 const mongoose_1 = require("mongoose");
 const agentSchema = new mongoose_1.Schema({
     user: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+    isApproved: { type: Boolean, default: false },
     isSuspended: { type: Boolean, default: false },
     commissionEarned: { type: Number, default: 0 },
 }, { timestamps: true });

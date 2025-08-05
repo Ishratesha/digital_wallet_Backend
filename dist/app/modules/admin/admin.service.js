@@ -23,6 +23,9 @@ exports.AdminService = {
     getAllWallets: () => __awaiter(void 0, void 0, void 0, function* () {
         return wallet_model_1.Wallet.find().sort({ createdAt: -1 });
     }),
+    updateAgentStatus: (agentId, isApproved) => __awaiter(void 0, void 0, void 0, function* () {
+        return yield user_model_1.User.findByIdAndUpdate(agentId, { isApproved }, { new: true });
+    }),
     blockWallet: (walletId, isBlocked) => __awaiter(void 0, void 0, void 0, function* () {
         return yield wallet_model_1.Wallet.findByIdAndUpdate(walletId, { isBlocked }, { new: true });
     }),

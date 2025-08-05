@@ -17,10 +17,10 @@ const seedSuperAdmin = async () => {
       return;
     }
 
-    const hashedPassword = await bcrypt.hash('admin1234', 10); // Change as needed
+    const hashedPassword = await bcrypt.hash(envVars.SUPER_ADMIN_PASSWORD, 10); // Change as needed
 
     const admin = await User.create({
-      phoneNumber: '01711111111',
+      phoneNumber: '01703507716',
       nid: '1211560890',
       email: 'admin@wallet.com',
       password: hashedPassword,

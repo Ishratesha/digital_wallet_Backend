@@ -24,6 +24,14 @@ exports.AdminController = {
         const wallets = yield admin_service_1.AdminService.getAllWallets();
         res.status(200).json({ success: true, data: wallets });
     }),
+    approveOrSuspendAgent: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { agentId } = req.params;
+        const { isSuspended } = req.body; // true or false
+        const agent = yield admin_service_1.AdminService.updateAgentStatus(agentId, isSuspended);
+        if (!agent)
+            return res.status(404).json({ message: 'Agent not found' });
+        res.status(200).json({ message: `Agent ${isSuspended ? 'suspended' : 'approved'} successfully`, data: agent });
+    }),
     blockWallet: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { walletId } = req.params;
         const { isBlocked } = req.body; // true or false

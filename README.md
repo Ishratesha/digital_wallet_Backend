@@ -96,8 +96,8 @@ npm run seed:admin
 Credentials:
 
 ```bash
-Phone: 01711111111
-Password: admin1234
+Phone: 01703507716
+Password: 54321
 ```
 
 #### 5. Run development server
@@ -121,6 +121,7 @@ npm run dev
 | POST   | `/api/transactions/cash-in`     | Agent  | Add to user wallet        |
 | POST   | `/api/transactions/cash-out`    | Agent  | Withdraw from user wallet |
 | GET    | `/api/admin/users`              | Admin  | View all users            |
+| GET    | `/api/admin/transactions`       | Admin  | View all Transactions     |
 | PATCH  | `/api/admin/wallets/:id/block`  | Admin  | Block/unblock wallet      |
 | PATCH  | `/api/admin/agents/:id/suspend` | Admin  | Suspend/approve agent     |
 

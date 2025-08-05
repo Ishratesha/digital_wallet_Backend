@@ -13,4 +13,6 @@ router.post('/send-money', (0, auth_1.auth)('USER'), transaction_controller_1.Tr
 router.post('/cash-in', (0, auth_1.auth)('AGENT'), transaction_controller_1.TransactionController.cashIn);
 router.post('/cash-out', (0, auth_1.auth)('USER'), transaction_controller_1.TransactionController.cashOut);
 router.get('/history', (0, auth_1.auth)('USER'), transaction_controller_1.TransactionController.myTransactions);
+router.get('/history/user', (0, auth_1.auth)('USER'), transaction_controller_1.TransactionController.userTransactionHistory);
+router.get('/agent-transactions', (0, auth_1.auth)('AGENT'), transaction_controller_1.TransactionController.agentTransactions);
 exports.default = router;

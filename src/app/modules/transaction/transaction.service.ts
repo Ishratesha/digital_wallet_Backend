@@ -164,9 +164,7 @@ cashInByAgent: async (
         initiatedBy: 'agent'
       }], { session });
   
-      // Optional: Record commission for agent
-      // await Commission.create({ agent: agentId, amount: commissionAmount });
-  
+     
       await session.commitTransaction();
       session.endSession();
   
