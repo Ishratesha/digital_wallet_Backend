@@ -13,17 +13,17 @@ import cors from 'cors';
 const app: Application = express();
 
 // Middlewares
-// app.use(cors({
-//   origin: '*',
-//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-// }));
-app.use(
-  cors({
-    origin: ["http://localhost:5173", "http://localhost:3000"], // allow both local & deployed frontend
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true, // allow cookies / auth headers if needed
-  })
-);
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+}));
+// app.use(
+//   cors({
+//     origin: ["http://localhost:5173", "http://localhost:3000"], // allow both local & deployed frontend
+//     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+//     credentials: true, // allow cookies / auth headers if needed
+//   })
+// );
 //app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
