@@ -3,28 +3,46 @@ import { UserRoutes } from './app/modules/user/user.route';
 import { AuthRoutes } from './app/modules/auth/auth.route';
 import transactionRoutes from './app/modules/transaction/transaction.route';
 import adminRoutes from './app/modules/admin/admin.route';
-
-import cors from 'cors';
-//import morgan from 'morgan';
-//import globalErrorHandler from './app/middlewares/globalErrorHandler';
-//import notFoundHandler from './app/middlewares/notFoundHandler';
-//import router from './app/routes';
+import express, { Application } from "express";
+import cors from "cors";
 
 const app: Application = express();
 
-// Middlewares
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-}));
-// app.use(
-//   cors({
-//     origin: ["http://localhost:5173", "http://localhost:3000"], // allow both local & deployed frontend
-//     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-//     credentials: true, // allow cookies / auth headers if needed
-//   })
-// );
-//app.use(cors());
+// ✅ Define allowed origins by environment
+const devOrigins = [
+  "http://localhost:5173", // Vite dev
+  "http://localhost:3000", // Next.js dev
+];
+
+const prodOrigins = [
+  "https://your-frontend.vercel.app", // replace with your deployed frontend
+];
+
+// ✅ Choose based on NODE_ENV
+const allowedOrigins =
+  process.env.NODE_ENV === "production" ? prodOrigins : devOrigins;
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow server-to-server calls (no origin)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("CORS not allowed for this origin"), false);
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
+
+// ✅ Handle preflight requests
+app.options("*", cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 //app.use(morgan('dev'));
